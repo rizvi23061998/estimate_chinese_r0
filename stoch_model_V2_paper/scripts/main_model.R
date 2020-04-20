@@ -17,12 +17,22 @@ registerDoMC(4)  #change the 2 to your number of CPU cores
 
 rm(list=ls(all=TRUE))
 
+
+
 # - - -
 # Set user-specific directory path and load datasets
-if(Sys.info()["user"]=="adamkuchars" | Sys.info()["user"]=="adamkucharski") {
-  setwd("~/Documents/GitHub/2020-nCov/stoch_model_V2_paper")
-  dropbox_path <- ""
+if(Sys.info()["user"]=="khan" | Sys.info()["user"]=="Khan") {
+  setwd("~/workspace/2020-ncov/stoch_model_V2_paper/")
+  dropbox_path <- "./" 
+  print("in")
+  Sys.setenv(TZ = "Asia/Dhaka")
+}else{
+  # setwd("..")
+  setwd("/media/khan/Codes1/Ebooks&Lectures/Level-4_Term-2/Thesis/Corona/2020-ncov")
+  dropbox_path <- "./" 
 }
+
+source('R/province_clustering.R')
 
 # Load datasets, functions and parameters ----------------------------------------------
 
@@ -51,6 +61,9 @@ source("R/plotting_functions.R")
 
 # - - -
 # Load model parameters
+
+print("Loading initial parameters .. ..")
+
 thetaR_IC <- read_csv("inputs/theta_initial_conditions.csv")
 theta <- c( r0=as.numeric(thetaR_IC[thetaR_IC$param=="r0","value"]), # note this is only IC - SMC estimates this
             beta=NA,
@@ -74,21 +87,35 @@ theta <- c( r0=as.numeric(thetaR_IC[thetaR_IC$param=="r0","value"]), # note this
 )
 
 
-theta[["travel_frac"]] <- theta[["passengers"]]/theta[["pop_travel"]] # Estimate fraction that travel
+# theta[["travel_frac"]] <- theta[["passengers"]]/theta[["pop_travel"]] # Estimate fraction that travel
+
+#=======================Travelling reduced to zero=========================
+theta[["travel_frac"]] <- 0 # Estimate fraction that travel
+#==========================================================================
+group_name <- "group3_incidence"
+group <- readRDS(paste("outputs/",group_name,".rds",sep = ''))
+
+china_population <- as.data.frame(china_population)
+# china_population[is.na(china_population$`2018total`),"2018total"]<- mean(china_population$`2018total`)
+rownames(china_population) <- china_population$Region_EN
+pop_group <- china_population[group,"2018total"]
+pop_group[is.na(pop_group)] <- 0 #mean(pop_group,na.rm = T) 
+theta[["pop_travel"]] <- sum(pop_group)
 
 theta[["beta"]] <- theta[["r0"]]*(theta[["recover"]]) # Scale initial value of R0
 
-theta_initNames <- c("sus","tr_exp1","tr_exp2","exp1","exp2","inf1","inf2","tr_waiting","cases","reports","waiting_local","cases_local","reports_local") # also defines groups to use in model
-
+theta_initNames <- c("sus","tr_exp1","tr_exp2","exp1","exp2","inf1","inf2","tr_waiting","cases","reports","waiting_local","cases_local","reports_local","rem") # also defines groups to use in model
 
 # - - -
 # Load timeseries -  specify travel data being used
 # NOTE: USES REPORTING DELAY AS INPUT
 source("R/load_timeseries_data.R")
 
-
+# theta[["init_cases"]] <- case_data_Ezhou[1
 
 # Run set up check --------------------------------------------------------------
+
+print("Checking setup")
 
 # - - -
 # Run SMC and check likelihood
@@ -99,9 +126,12 @@ output_smc <- smc_model(theta,
 
 output_smc$lik
 
-# Run main outputs --------------------------------------------------------------
+print(output_smc$lik)
 
+# Run main outputs --------------------------------------------------------------
+print("Running main outputs ..")
 source("R/outputs_main.R")
 
 
+  
 
