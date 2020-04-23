@@ -33,7 +33,8 @@ if(Sys.info()["user"]=="khan" | Sys.info()["user"]=="Khan") {
 }
 
 source('R/province_clustering.R')
-
+group_name <- "group3_temp"
+print(group_name)
 # Load datasets, functions and parameters ----------------------------------------------
 
 # - - -
@@ -92,8 +93,8 @@ theta <- c( r0=as.numeric(thetaR_IC[thetaR_IC$param=="r0","value"]), # note this
 #=======================Travelling reduced to zero=========================
 theta[["travel_frac"]] <- 0 # Estimate fraction that travel
 #==========================================================================
-group_name <- "group3_incidence"
-group <- readRDS(paste("outputs/",group_name,".rds",sep = ''))
+
+group <- readRDS(paste("outputs/rds/",group_name,".rds",sep = ''))
 
 china_population <- as.data.frame(china_population)
 # china_population[is.na(china_population$`2018total`),"2018total"]<- mean(china_population$`2018total`)

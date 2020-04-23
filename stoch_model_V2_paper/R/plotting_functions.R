@@ -119,7 +119,7 @@ plot_outputs <- function(filename="1"){
   aa <- cbind(date_range,round(Case_local_quantile_raw[3,]))
   aa <- as_tibble(aa); names(aa) <- c("date","cases"); aa$date <- as.Date(aa$date,origin="1970-01-01")
   write_csv(aa,"outputs/case_model.csv")
-  jpeg(paste("outputs/case_model_",group_name,".jpeg",sep = ""),height = 512)
+  jpeg(paste("outputs/case_models/case_model_",group_name,".jpeg",sep = ""),height = 512)
   plot(date_range,cumsum(case_data_Ezhou),type = 'p',col = "blue",ylab = "Cumulative Incidence",pch = 16, frame = FALSE)
   lines(date_range,cumsum(round(Case_local_quantile_raw[3,])),col = "red")
   dev.off()
@@ -448,7 +448,7 @@ plot_dispersion <- function(filename="1"){
     # print(med_R0)
     print(R0_CrI)
     print(class(R0_CrI))
-    fname <- paste('outputs/r0_',group_name,".csv",sep = "")
+    fname <- paste('outputs/r0_values/r0_',group_name,".csv",sep = "")
     write.csv(as.data.frame(R0_CrI),fname)
     
     MERS_k <- 0.26

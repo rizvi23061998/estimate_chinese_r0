@@ -16,13 +16,16 @@ data <- data[data$Region_EN != "Wuhan",]
 data$地区名称 <- NULL
 
 data = data[which(data$Incidence != 0),]
-data = data[which(data$Recovery_R != 0),]
-data = data[which(data$Mortality != 0),]
+# data = data[which(data$Recovery_R != 0),]
+# data = data[which(data$Mortality != 0),]
 
+data <- drop_na(data)
 # 
-# new_data = data[,c("Incidence","Recovery_R","Mortality")]
+new_data = data[,c("Incidence","Recovery_R","Mortality")]
+# new_data <- apply(new_data, 2, scale)
 # cls=kmeans(new_data,3)
 # data$group <- cls$cluster
+# new_data <- cls$cluster
 # 
 # n_data <- data[,!(colnames(data) %in% c("2018total","2018male","2018female","age 0-14","age15-64"  ,"age>65"))]
 # n_data<- n_data[which(n_data$group==3),]
@@ -36,10 +39,10 @@ data = data[which(data$Mortality != 0),]
 # 
 # # print(group1)
 # # 
-# write_rds(group1,"outputs/group1_incidence.rds")
-# write_rds(group2,"outputs/group2_incidence.rds")
-# write_rds(group3,"outputs/group3_incidence.rds")
-
+# write_rds(group1,"outputs/rds/group1_incidence.rds")
+# write_rds(group2,"outputs/rds/group2_incidence.rds")
+# write_rds(group3,"outputs/rds/group3_incidence.rds")
+# 
 min_temp <- read_excel("data/chinesedata/Min_Temperature.xlsx")
 min_temp <- as.data.frame(min_temp)
 min_temp$Region_CN = NULL
@@ -93,17 +96,103 @@ data_all <- join(data_all,max_temp,by="Region_EN")
 data_all <- drop_na(data_all)
 non_required_cols <- c("Pop_2018", "Total_Recover" ,"Tota_death","Total_confirm_cases")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols)]
-data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
-data_all <- data_all %>% mutate(age65_ratio = (`age>65` / `2018total`))
+# data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
+# data_all <- data_all %>% mutate(age65_ratio = (`age>65` / `2018total`))
+# data_all <- data_all %>% mutate(age15_to64_ratio = (`age15-64` / `2018total`))
+# data_all <- data_all %>% mutate(age0_to14_ratio = (`age 0-14` / `2018total`))
 non_required_cols_1 <- c("age 0-14", "age15-64",  "age>65","2018total","2018male", "2018female")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_1)]
 
+non_required_cols_2 <- c("Incidence","Mortality","Recovery_R")
+data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_2)]
+
+
 new_data <- data_all
 new_data$Region_EN <- NULL
+# new_data$mf_ratio <- NULL
+
 new_data <- apply(new_data, 2, scale)
 cls=kmeans(new_data,3)
 data_all$group <- cls$cluster
 
-n_data <- data_all
-n_data<- n_data[which(n_data$group==1),]
-print(n_data)
+group1 <- data_all[which(data_all$group == 1),"Region_EN"]
+group2 <- data_all[which(data_all$group == 2),"Region_EN"]
+group3 <- data_all[which(data_all$group == 3),"Region_EN"]
+
+
+#
+# # print(group1)
+# #
+# write_rds(group1,"outputs/rds/group1_all.rds")
+# write_rds(group2,"outputs/rds/group2_all.rds")
+# write_rds(group3,"outputs/rds/group3_all.rds")
+
+# write_rds(group1,"outputs/rds/group1_without_mf.rds")
+# write_rds(group2,"outputs/rds/group2_without_mf.rds")
+# write_rds(group3,"outputs/rds/group3_without_mf.rds")
+
+
+# write_rds(group1,"outputs/rds/group1_all_age.rds")
+# write_rds(group2,"outputs/rds/group2_all_age.rds")
+# write_rds(group3,"outputs/rds/group3_all_age.rds")
+#
+# write_rds(group1,"outputs/rds/group1_temp.rds")
+# write_rds(group2,"outputs/rds/group2_temp.rds")
+# write_rds(group3,"outputs/rds/group3_temp.rds")
+
+#tuba
+
+# group1 <- data_all[which(data_all$group == 1),]
+# group2 <- data_all[which(data_all$group == 2),]
+# group3 <- data_all[which(data_all$group == 3),]
+#
+# group1 <- format(group1,digits=2,nsmall = 2)
+# group2 <- format(group2,digits=2,nsmall = 2)
+# group3 <- format(group3,digits=2,nsmall = 2)
+#
+# write.csv(group1,"outputs/group1_all_details.csv")
+# write.csv(group2,"outputs/group2_all_details.csv")
+# write.csv(group3,"outputs/group3_all_details.csv")
+
+
+
+library(factoextra)
+new_data <- data_all#[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
+rownames(new_data) <- new_data$Region_EN
+new_data$Region_EN <- NULL
+groups <- as.factor(new_data$group)
+new_data$group <- NULL
+res <- prcomp(new_data,scale = TRUE)
+
+fviz_pca_ind(res,
+             col.ind = groups, # color by groups
+             palette = c("#00AFBB",  "#FC4E07","black"),
+             addEllipses = TRUE, # Concentration ellipses
+             ellipse.type = "confidence",
+             legend.title = "Groups",
+             repel = TRUE
+)
+
+type = "temp"
+g1 <- readRDS(paste("outputs/rds/group1_",type,".rds",sep = ""))
+g2 <- readRDS(paste("outputs/rds/group2_",type,".rds",sep = ""))
+g3 <- readRDS(paste("outputs/rds/group3_",type,".rds",sep = ""))
+s <- read.csv("states.csv",header = T)
+s <- s[,2]
+z = array(0,dim = length(s))
+for (i in 1:length(s)){
+  # print(s[i,])
+  if( s[i] %in% g1){
+    z[i] = 1
+  }else if(s[i] %in% g2){
+    z[i] = 2
+  }else if(s[i] %in% g3){
+    z[i] = 3
+    
+  }
+  else{
+    z[i] <- NA
+  }
+}
+
+write.csv(z,"tmp.csv")
