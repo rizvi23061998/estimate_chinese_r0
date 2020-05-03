@@ -1,40 +1,4 @@
-# nCoV stochastic model
-# Main script
-# Author: AJ Kucharski (2020)
 
-# Set up libraries and paths ----------------------------------------------
-
-library(foreach)
-library(doMC)
-library(lubridate)
-library(magrittr)
-library(coda)
-library(tidyverse)
-library(rootSolve)
-library(mgcv)
-  
-registerDoMC(4)  #change the 2 to your number of CPU cores
-
-rm(list=ls(all=TRUE))
-
-
-
-# - - -
-# Set user-specific directory path and load datasets
-if(Sys.info()["user"]=="khan" | Sys.info()["user"]=="Khan") {
-  setwd("~/workspace/2020-ncov/stoch_model_V2_paper/")
-  dropbox_path <- "./" 
-  print("in")
-  Sys.setenv(TZ = "Asia/Dhaka")
-}else{
-  # setwd("..")
-  setwd("/media/khan/Codes1/Ebooks&Lectures/Level-4_Term-2/Thesis/Corona/2020-ncov")
-  dropbox_path <- "./" 
-}
-
-source('R/province_clustering.R')
-group_name <- "group3_temp"
-print(group_name)
 # Load datasets, functions and parameters ----------------------------------------------
 
 # - - -
@@ -106,6 +70,7 @@ theta[["pop_travel"]] <- sum(pop_group)
 theta[["beta"]] <- theta[["r0"]]*(theta[["recover"]]) # Scale initial value of R0
 
 theta_initNames <- c("sus","tr_exp1","tr_exp2","exp1","exp2","inf1","inf2","tr_waiting","cases","reports","waiting_local","cases_local","reports_local","rem") # also defines groups to use in model
+forecast_window <- 0
 
 # - - -
 # Load timeseries -  specify travel data being used

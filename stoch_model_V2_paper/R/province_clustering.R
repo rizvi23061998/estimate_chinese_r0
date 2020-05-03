@@ -1,6 +1,7 @@
 library(readxl)
 library(plyr)
 set.seed(123)
+library(Rtsne)
 
 china_incidence <- read_excel("data/chinesedata/Copy of China_C19.dbf.xlsx")
 china_incidence <- china_incidence[!is.na(china_incidence$Region_EN),]
@@ -13,7 +14,14 @@ china_population$Region_EN <- make.unique(china_population$Region_EN)
 
 data <- join(china_incidence,china_population,by = "Region_EN")
 data <- data[data$Region_EN != "Wuhan",]
+
+# name_data <- china_population[,c("Region_EN","地区名称")]
+# rownames(name_data) <- name_data$Region_EN
+# name_data$Region_EN <- NULL
+# write_rds(name_data,"outputs/prefecture_names.rds")
 data$地区名称 <- NULL
+
+
 
 data = data[which(data$Incidence != 0),]
 # data = data[which(data$Recovery_R != 0),]
@@ -96,18 +104,18 @@ data_all <- join(data_all,max_temp,by="Region_EN")
 data_all <- drop_na(data_all)
 non_required_cols <- c("Pop_2018", "Total_Recover" ,"Tota_death","Total_confirm_cases")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols)]
-# data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
-# data_all <- data_all %>% mutate(age65_ratio = (`age>65` / `2018total`))
+data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
+data_all <- data_all %>% mutate(age65_ratio = (`age>65` / `2018total`))
 # data_all <- data_all %>% mutate(age15_to64_ratio = (`age15-64` / `2018total`))
 # data_all <- data_all %>% mutate(age0_to14_ratio = (`age 0-14` / `2018total`))
 non_required_cols_1 <- c("age 0-14", "age15-64",  "age>65","2018total","2018male", "2018female")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_1)]
 
 non_required_cols_2 <- c("Incidence","Mortality","Recovery_R")
-data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_2)]
+# data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_2)]
 
 
-new_data <- data_all
+new_data <- data_all#[,c("Region_EN",non_required_cols_2)]
 new_data$Region_EN <- NULL
 # new_data$mf_ratio <- NULL
 
@@ -154,45 +162,62 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 # write.csv(group2,"outputs/group2_all_details.csv")
 # write.csv(group3,"outputs/group3_all_details.csv")
 
+# library(Rtsne)
+# 
+# library(factoextra)
+# new_data <- data_all[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
+# rownames(new_data) <- new_data$Region_EN
+# new_data$Region_EN <- NULL
+# write_rds(new_data,"outputs/pca/d1.rds")
+# groups <- as.factor(new_data$group)
+# new_data$group <- NULL
+# res <- prcomp(new_data,scale = TRUE)
+# write_rds(res,"outputs/pca/c1.rds")
+# fviz_pca_ind(res,
+#              col.ind = groups, # color by groups
+#              palette = c("#00AFBB",  "#FC4E07","black"),
+#              addEllipses = TRUE, # Concentration ellipses
+#              ellipse.type = "confidence",
+#              legend.title = "Groups",
+#              repel = TRUE
+# )
+# colors = rainbow(length(unique(groups)))
+# names(colors) = unique(groups)
+# 
+# tsne <-Rtsne(new_data,dims = 2, perplexity=30, verbose=TRUE, max_iter = 500,check_duplicates=F)
+# 
+# plot(tsne$Y, t='n', main="tsne",xlab = "Dimension1",ylab="Dimension2")
+# text(tsne$Y, labels=rownames(new_data), col=colors[groups])
+# write_rds(tsne,"outputs/tsne/c1.rds")
 
+# print(colnames(data_all))
 
-library(factoextra)
-new_data <- data_all#[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
-rownames(new_data) <- new_data$Region_EN
-new_data$Region_EN <- NULL
-groups <- as.factor(new_data$group)
-new_data$group <- NULL
-res <- prcomp(new_data,scale = TRUE)
-
-fviz_pca_ind(res,
-             col.ind = groups, # color by groups
-             palette = c("#00AFBB",  "#FC4E07","black"),
-             addEllipses = TRUE, # Concentration ellipses
-             ellipse.type = "confidence",
-             legend.title = "Groups",
-             repel = TRUE
-)
-
-type = "temp"
-g1 <- readRDS(paste("outputs/rds/group1_",type,".rds",sep = ""))
-g2 <- readRDS(paste("outputs/rds/group2_",type,".rds",sep = ""))
-g3 <- readRDS(paste("outputs/rds/group3_",type,".rds",sep = ""))
-s <- read.csv("states.csv",header = T)
-s <- s[,2]
-z = array(0,dim = length(s))
-for (i in 1:length(s)){
-  # print(s[i,])
-  if( s[i] %in% g1){
-    z[i] = 1
-  }else if(s[i] %in% g2){
-    z[i] = 2
-  }else if(s[i] %in% g3){
-    z[i] = 3
-    
-  }
-  else{
-    z[i] <- NA
-  }
-}
-
-write.csv(z,"tmp.csv")
+ 
+# h_clust <- hclust(dist(new_data))
+# plot(h_clust)
+# clusterCut <- cutree(h_clust, 20)
+# wuhan_cluster<- names(clusterCut[clusterCut == clusterCut["Wuhan"]])
+# write_rds(wuhan_cluster,"outputs/rds/wuhan_cluster.rds")
+# type = "without_mf"
+# g1 <- readRDS(paste("outputs/rds/group1_",type,".rds",sep = ""))
+# g2 <- readRDS(paste("outputs/rds/group2_",type,".rds",sep = ""))
+# g3 <- readRDS(paste("outputs/rds/group3_",type,".rds",sep = ""))
+# s <- read.csv("states.csv",header = T)
+# s <- s[,2]
+# z = array(0,dim = length(s))
+# for (i in 1:length(s)){
+#   # print(s[i,])
+#   if( s[i] %in% g1){
+#     z[i] = 1
+#   }else if(s[i] %in% g2){
+#     z[i] = 2
+#   }else if(s[i] %in% g3){
+#     z[i] = 3
+# 
+#   }
+#   else{
+#     z[i] <- NA
+#   }
+# }
+# 
+# write.csv(z,"tmp.csv")

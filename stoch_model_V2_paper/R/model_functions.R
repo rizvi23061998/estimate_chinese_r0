@@ -36,7 +36,7 @@ process_model <- function(t_start,t_end,dt,theta,simTab,simzetaA,travelF){
   for(ii in seq((t_start+dt),t_end,dt) ){
     
     # transitions
-    S_to_E1 <- susceptible_t*(theta[["pre_symp"]]*tr_exposed_t2+infectious_t1+infectious_t2)*inf_rate # stochastic transmission
+    S_to_E1 <- susceptible_t*(infectious_t1+infectious_t2)*inf_rate # stochastic transmission
     
     # Delay until symptoms
     E1_to_E2 <- exposed_t1*inc_rate # as two compartments
@@ -74,7 +74,6 @@ process_model <- function(t_start,t_end,dt,theta,simTab,simzetaA,travelF){
     tr_waiting_t <- tr_waiting_t + E2_to_I1_tr*prob_rep - W_to_Rep
     cases_t <- cases_t + E2_to_I1_tr*prob_rep
     reports_t <- reports_t + W_to_Rep
-    
     
   }
   
@@ -137,12 +136,12 @@ smc_model <- function(theta,nn,dt=1){
   W <- matrix(NA,nrow=nn,ncol=ttotal)
   A <- matrix(NA,nrow=nn,ncol=ttotal) # particle parent matrix
   l_sample <- rep(NA,ttotal)
-  lik_values <- rep(NA,ttotal)
+  lik_values <- rep(0,ttotal)
   
   # Iterate through steps
   
-  for(tt in 2:ttotal){
-    
+  for(tt in 2:(ttotal - forecast_window)){
+    # print(tt)
     # DEBUG  tt=2
     
     # Add random walk on transmission ?
@@ -184,7 +183,8 @@ smc_model <- function(theta,nn,dt=1){
     
   } # END PARTICLE LOOP
   
-  
+  # ---------- ttotal changed -----------------
+  ttotal <- ttotal - forecast_window 
   # Estimate likelihood:
   for(tt in 1:ttotal){
     lik_values[tt] = log(sum(w[1:nn,tt])) # log-likelihoods
@@ -192,6 +192,7 @@ smc_model <- function(theta,nn,dt=1){
   
   likelihood0 = -ttotal*log(nn)+ sum(lik_values) # add full averaged log-likelihoods
   
+  print(likelihood0)
   # Sample latent variables:
   locs <-  sample(1:nn,prob = W[1:nn,tt],replace = T)
   l_sample[ttotal] <- locs[1]
@@ -216,9 +217,80 @@ smc_model <- function(theta,nn,dt=1){
     beta_traj[ii-1,] <- simzeta[ii-1,l_sample[ii-1]]
   }
   
+  
+  # forecast_days <- seq(ttotal - forecast_window+1,ttotal)
+  # ttotal <- ttotal + forecast_window
+  # simzeta[(ttotal - forecast_window + 1):ttotal,] <- beta_traj[(ttotal - forecast_window),1]
+  # best_loc <- l_sample[(ttotal-forecast_window)]
+  # print(best_loc)
+  # # write_rds(storeL,"store.rds")
+  # for (iniName in theta_initNames){
+  #   storeL[,(ttotal-forecast_window),iniName] <- storeL[best_loc,(ttotal-forecast_window),iniName]  
+  # }
+  # 
+  # 
+  # # write.csv(storeL[,,c("inf1","inf2")],"tmp1.csv")
+  # # write.csv(l_sample,"tmp2.csv")
+  # for(tt in (ttotal - forecast_window + 1):ttotal  ){
+  #   # Add random walk on transmission ?
+  #   # simzeta[tt,] <- (simzeta[tt-1,])#*exp(simzeta[tt,])
+  #   
+  #   # run process model
+  #   storeL[,tt,] <- process_model(tt-1,tt,dt,theta,storeL[,tt-1,],simzeta[tt,],travelF)
+  #   
+  #   # if(var(storeL[,tt,"cases_local"])!=0 && tt == ttotal){
+  #   #   print(tt)
+  #   #     write.csv(storeL[,,c("inf1","inf2")],"tmp.csv")
+  #   # }
+  #   # if(any(simzeta[tt,]<=0)){print("bad")}
+  #   # calculate weights
+  #   # w[,tt] <- 
+  #   # 
+  #   # # normalise particle weights
+  #   # sum_weights <- sum(w[1:nn,tt])
+  #   # W[1:nn,tt] <- w[1:nn,tt]/sum_weights
+  #   W[,tt] <- W[,tt-1]
+  #   # resample particles by sampling parent particles according to weights:
+  #   A[, tt] <- sample(1:nn,prob = W[1:nn,tt],replace = T)
+  #   
+  #   # Resample particles for corresponding variables
+  #   # storeL[,tt,] <- storeL[ A[, tt] ,tt,]
+  #   # simzeta[tt,] <- simzeta[tt, A[, tt]] #- needed for random walk on beta
+  #   # print(tt)
+  #   
+  # }
+  # 
+  
+  # print(tt)
+  # Sample latent variables:
+  # locs <-  sample(1:nn,prob = W[1:nn,tt],replace = T)
+  # l_sample[ttotal] <- 1# locs[1]
+  # C_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"cases"]
+  # C_local_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"cases_local"]
+  # Rep_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"reports"]
+  # Rep_local_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"reports_local"]
+  # S_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"sus"]
+  # E_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"exp2"] +storeL[l_sample[ttotal],ttotal,"exp1"]
+  # I_traj[ttotal,] <- storeL[l_sample[ttotal],ttotal,"inf1"]+storeL[l_sample[ttotal],ttotal,"inf2"]
+  # beta_traj[ttotal,] <- simzeta[ttotal,l_sample[ttotal]]
+  # 
+  # 
+  # for(ii in seq(ttotal,ttotal-forecast_window + 2,-1)){
+  #   l_sample[ii-1] <- 1#A[l_sample[ii],ii] # have updated indexing
+  #   C_local_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"cases_local"]
+  #   Rep_local_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"reports_local"]
+  #   C_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"cases"]
+  #   Rep_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"reports"]
+  #   S_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"sus"]
+  #   E_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"exp2"]+ storeL[l_sample[ii-1],ii-1,"exp1"]
+  #   I_traj[ii-1,] <- storeL[l_sample[ii-1],ii-1,"inf1"]+ storeL[l_sample[ii-1],ii-1,"inf2"]
+  #   beta_traj[ii-1,] <- simzeta[ii-1,l_sample[ii-1]]
+  # }
+  
+  
   # DEBUG  plot(Rep_traj[,1]-C_traj[,1])
   
-  # print(list(S_trace=S_traj,C_local_trace=C_local_traj,Rep_local_trace=Rep_local_traj,C_trace=C_traj,Rep_trace=Rep_traj,E_trace=E_traj,I_trace=I_traj,beta_trace=beta_traj,lik=likelihood0 ))  
+  # print(list(S_trace=S_traj,C_local_trace=C_local_traj,Rep_local_trace=Rep_local_traj,C_trace=C_traj,Rep_trace=Rep_traj,E_trace=E_traj,I_trace=I_traj,beta_trace=beta_traj,lik=likelihood0 ))
   return(list(S_trace=S_traj,C_local_trace=C_local_traj,Rep_local_trace=Rep_local_traj,C_trace=C_traj,Rep_trace=Rep_traj,E_trace=E_traj,I_trace=I_traj,beta_trace=beta_traj,lik=likelihood0 ))
 
   

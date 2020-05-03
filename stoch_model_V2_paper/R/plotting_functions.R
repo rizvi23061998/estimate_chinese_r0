@@ -84,7 +84,7 @@ run_fits <- function(rep_plot,nn,cut_off,dt,filename="1"){
   
 plot_outputs <- function(filename="1"){
   
-  # filename="1"
+  filename="1"
   
   cut_off <- 0 #end_date - as.Date("2020-01-23")
   
@@ -110,7 +110,7 @@ plot_outputs <- function(filename="1"){
   Inf_quantile <- apply(I_plot,1,function(x){quantile(x,c(0.025,0.25,0.5,0.75,0.975))})/theta[["pop_travel"]] # proportion
 
   # Local cases
-  Case_local_quantile <- apply(C_local_plot,1,function(x){quantile(x,c(0.025,0.25,0.5,0.75,0.975))}) 
+  Case_local_quantile <- apply(C_local_plot,1,function(x){quantile(x,c(0.025,0.25,0.5,0.75,0.975))})
   Case_local_quantile_onset <- theta[["onset_prop"]]*Case_local_quantile
   
   # DEBUG - output data 
@@ -118,12 +118,23 @@ plot_outputs <- function(filename="1"){
   Case_local_quantile_raw <- apply(C_local_plot_real,1,function(x){quantile(x,c(0.025,0.25,0.5,0.75,0.975))}) 
   aa <- cbind(date_range,round(Case_local_quantile_raw[3,]))
   aa <- as_tibble(aa); names(aa) <- c("date","cases"); aa$date <- as.Date(aa$date,origin="1970-01-01")
-  write_csv(aa,"outputs/case_model.csv")
-  jpeg(paste("outputs/case_models/case_model_",group_name,".jpeg",sep = ""),height = 512)
-  plot(date_range,cumsum(case_data_Ezhou),type = 'p',col = "blue",ylab = "Cumulative Incidence",pch = 16, frame = FALSE)
-  lines(date_range,cumsum(round(Case_local_quantile_raw[3,])),col = "red")
+  cm <- as.data.frame(aa)
+  cm <- cbind(cm,case_data_Ezhou)
+  colnames(cm)[3] <- "real"
+  write_csv(cm,paste("outputs/case_models/validation/case_model_",group_name,".csv",sep = ""))
+  jpeg(paste("outputs/case_models/validation/case_model_",group_name,".jpeg",sep = ""),height = 512)
+  # plot(date_range,cumsum(case_data_Ezhou),type = 'p',col = "blue",ylab = "Cumulative Incidence",pch = 16, frame = FALSE)
+  # lines(date_range,cumsum(round(Case_local_quantile_raw[3,])),col = "red")
+  real_df <- data.frame("Dates" = date_range,"Inc" = cumsum(case_data_Ezhou))
+  pred_df <- data.frame("Dates" = date_range,"Inc" = cumsum(round(Case_local_quantile_raw[3,])))
+                           
+  g_case <- ggplot()+geom_point(data = real_df,aes(x=Dates,y=Inc),color="blue") + geom_line(data = pred_df,aes(x=Dates,y=Inc),color="red") + labs(x = "Dates", y= "Cumulative Incidence")
+  # idx_pred <- date_range[length(date_range)-forecast_window]
+  # abline(v = idx_pred,col = "red")
+  # print(round(Case_local_quantile_raw[3,]))
+  print(g_case)
   dev.off()
-  
+  saveRDS(g_case,paste("outputs/case_models/validation/case_gg_",group_name,".rds"))
   Rep_local_quantile <- apply(Rep_local_plot,1,function(x){quantile(x,c(0.025,0.25,0.5,0.75,0.975))}) 
   
   # International onset
@@ -448,7 +459,7 @@ plot_dispersion <- function(filename="1"){
     # print(med_R0)
     print(R0_CrI)
     print(class(R0_CrI))
-    fname <- paste('outputs/r0_values/r0_',group_name,".csv",sep = "")
+    fname <- paste('outputs/r0_values/validation/r0_',group_name,".csv",sep = "")
     write.csv(as.data.frame(R0_CrI),fname)
     
     MERS_k <- 0.26
