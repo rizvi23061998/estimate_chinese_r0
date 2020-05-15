@@ -33,10 +33,14 @@ if(Sys.info()["user"]=="khan" | Sys.info()["user"]=="Khan") {
 }
 
 source('R/province_clustering.R')
-group_names <- c("group1_temp","group2_temp","group3_temp","group1_all","group2_all","group3_all",
-                 "group1_all_age","group2_all_age","group3_all_age","group1_without_mf",
-                 "group2_without_mf","group3_without_mf","group1_incidence","group2_incidence",
-                 "group3_incidence")
+group_names <- c("group1_all","group2_all","group3_all",
+                 "group1_incidence","group2_incidence","group3_incidence",
+                 "group1_without_mf","group2_without_mf","group3_without_mf",
+                 "group1_all_age","group2_all_age","group3_all_age",
+                 "group1_temp","group2_temp","group3_temp",
+                 "group1_only_age","group2_only_age","group3_only_age")
+
+
 for(group_name in group_names){
   print(group_name)
   source("scripts/main_model.R")

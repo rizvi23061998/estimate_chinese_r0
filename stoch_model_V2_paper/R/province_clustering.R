@@ -13,7 +13,7 @@ china_population$Region_EN <- make.unique(china_population$Region_EN)
 
 
 data <- join(china_incidence,china_population,by = "Region_EN")
-data <- data[data$Region_EN != "Wuhan",]
+# data <- data[data$Region_EN != "Wuhan",]
 
 # name_data <- china_population[,c("Region_EN","地区名称")]
 # rownames(name_data) <- name_data$Region_EN
@@ -23,12 +23,11 @@ data$地区名称 <- NULL
 
 
 
-data = data[which(data$Incidence != 0),]
-# data = data[which(data$Recovery_R != 0),]
-# data = data[which(data$Mortality != 0),]
+# data = data[which(data$Incidence != 0),]
+
 
 data <- drop_na(data)
-# 
+ 
 new_data = data[,c("Incidence","Recovery_R","Mortality")]
 # new_data <- apply(new_data, 2, scale)
 # cls=kmeans(new_data,3)
@@ -57,12 +56,12 @@ min_temp$Region_CN = NULL
 rownames(min_temp) <- make.unique(min_temp$Region_EN)
 min_temp$Region_EN <-NULL
 min_col <- apply(min_temp, 1, FUN=min)
-min_temp$min_min_col <- min_col
+min_temp$min_min_temp <- min_col
 mean_col <- apply(min_temp, 1, FUN=mean)
-min_temp$mean_min_col <- mean_col
+min_temp$mean_min_temp <- mean_col
 max_col <- apply(min_temp, 1, FUN=max)
-min_temp$max_min_col <- max_col
-min_temp <- min_temp[,c("min_min_col","mean_min_col","max_min_col")]
+min_temp$max_min_temp <- max_col
+min_temp <- min_temp[,c("min_min_temp","mean_min_temp","max_min_temp")]
 
 
 
@@ -72,12 +71,12 @@ mean_temp$Region_CN = NULL
 rownames(mean_temp) <- make.unique(mean_temp$Region_EN)
 mean_temp$Region_EN <-NULL
 min_col <- apply(mean_temp, 1, FUN=min)
-mean_temp$min_mean_col <- min_col
+mean_temp$min_mean_temp <- min_col
 mean_col <- apply(mean_temp, 1, FUN=mean)
-mean_temp$mean_mean_col <- mean_col
+mean_temp$mean_mean_temp <- mean_col
 max_col <- apply(mean_temp, 1, FUN=max)
-mean_temp$max_mean_col <- max_col
-mean_temp <- mean_temp[,c("min_mean_col","mean_mean_col","max_mean_col")]
+mean_temp$max_mean_temp <- max_col
+mean_temp <- mean_temp[,c("min_mean_temp","mean_mean_temp","max_mean_temp")]
 
 
 
@@ -87,12 +86,12 @@ max_temp$Region_CN = NULL
 rownames(max_temp) <- make.unique(max_temp$Region_EN)
 max_temp$Region_EN <-NULL
 min_col <- apply(max_temp, 1, FUN=min)
-max_temp$min_max_col <- min_col
+max_temp$min_max_temp <- min_col
 mean_col <- apply(max_temp, 1, FUN=mean)
-max_temp$mean_max_col <- mean_col
+max_temp$mean_max_temp <- mean_col
 max_col <- apply(max_temp, 1, FUN=max)
-max_temp$max_max_col <- max_col
-max_temp <- max_temp[,c("min_max_col","mean_max_col","max_max_col")]
+max_temp$max_max_temp <- max_col
+max_temp <- max_temp[,c("min_max_temp","mean_max_temp","max_max_temp")]
 
 
 min_temp$Region_EN <- rownames(min_temp)
@@ -104,16 +103,21 @@ data_all <- join(data_all,max_temp,by="Region_EN")
 data_all <- drop_na(data_all)
 non_required_cols <- c("Pop_2018", "Total_Recover" ,"Tota_death","Total_confirm_cases")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols)]
-data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
+# data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
 data_all <- data_all %>% mutate(age65_ratio = (`age>65` / `2018total`))
-# data_all <- data_all %>% mutate(age15_to64_ratio = (`age15-64` / `2018total`))
-# data_all <- data_all %>% mutate(age0_to14_ratio = (`age 0-14` / `2018total`))
+data_all <- data_all %>% mutate(age15_to64_ratio = (`age15-64` / `2018total`))
+data_all <- data_all %>% mutate(age0_to14_ratio = (`age 0-14` / `2018total`))
 non_required_cols_1 <- c("age 0-14", "age15-64",  "age>65","2018total","2018male", "2018female")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_1)]
 
 non_required_cols_2 <- c("Incidence","Mortality","Recovery_R")
 # data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_2)]
 
+
+non_required_cols_3 <- c("min_min_temp","mean_min_temp","max_min_temp",
+                         "min_mean_temp","mean_mean_temp","max_mean_temp",
+                         "min_max_temp","mean_max_temp","max_max_temp")
+# data_all <- data_all[,!(colnames(data_all) %in% non_required_cols_3)]
 
 new_data <- data_all#[,c("Region_EN",non_required_cols_2)]
 new_data$Region_EN <- NULL
@@ -127,6 +131,8 @@ group1 <- data_all[which(data_all$group == 1),"Region_EN"]
 group2 <- data_all[which(data_all$group == 2),"Region_EN"]
 group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 
+
+print(colnames(data_all))
 
 #
 # # print(group1)
@@ -148,7 +154,12 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 # write_rds(group2,"outputs/rds/group2_temp.rds")
 # write_rds(group3,"outputs/rds/group3_temp.rds")
 
-#tuba
+
+# write_rds(group1,"outputs/rds/group1_only_age.rds")
+# write_rds(group2,"outputs/rds/group2_only_age.rds")
+# write_rds(group3,"outputs/rds/group3_only_age.rds")
+
+
 
 # group1 <- data_all[which(data_all$group == 1),]
 # group2 <- data_all[which(data_all$group == 2),]
@@ -165,10 +176,10 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 # library(Rtsne)
 # 
 # library(factoextra)
-# new_data <- data_all[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
-# rownames(new_data) <- new_data$Region_EN
-# new_data$Region_EN <- NULL
-# write_rds(new_data,"outputs/pca/d1.rds")
+new_data <- data_all#[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
+rownames(new_data) <- new_data$Region_EN
+new_data$Region_EN <- NULL
+# write_rds(new_data,"outputs/pca/d6.rds")
 # groups <- as.factor(new_data$group)
 # new_data$group <- NULL
 # res <- prcomp(new_data,scale = TRUE)
@@ -198,7 +209,7 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 # clusterCut <- cutree(h_clust, 20)
 # wuhan_cluster<- names(clusterCut[clusterCut == clusterCut["Wuhan"]])
 # write_rds(wuhan_cluster,"outputs/rds/wuhan_cluster.rds")
-# type = "without_mf"
+# type = "only_age"
 # g1 <- readRDS(paste("outputs/rds/group1_",type,".rds",sep = ""))
 # g2 <- readRDS(paste("outputs/rds/group2_",type,".rds",sep = ""))
 # g3 <- readRDS(paste("outputs/rds/group3_",type,".rds",sep = ""))
@@ -221,3 +232,8 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 # }
 # 
 # write.csv(z,"tmp.csv")
+
+# testData <- data_all
+# rownames(testData) <- data_all$Region_EN
+# testData$Region_EN <- NULL
+# 
