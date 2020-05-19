@@ -13,9 +13,9 @@ run_fits(rep_plot=100, # number of repeats
 print("Bootstrap fit done .. .. .. ")
 
 # Output plots
-plot_outputs(filename="1") # Figure 2
+plot_outputs(filename="1") # For 
 print("Plotting done .. .. .. ")
-plot_dispersion(filename="1") # Figure 3
+plot_dispersion(filename="1") # For R0 
 #
 
 # Run models --------------------------------------------------------------

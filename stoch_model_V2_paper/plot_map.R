@@ -8,6 +8,8 @@ library(RColorBrewer)
 
 prefectures <- readRDS("outputs/prefecture_names.rds")
 r0_vals <- read_excel("../Combined.xlsx",sheet = "State-R0")
+
+# --------------- Naming issue resolved -----------
 r0_vals$Region_EN[r0_vals$Region_EN == "Yulin"] <- "Yulin.2" 
 r0_vals$Region_EN[r0_vals$Region_EN == "Yulin.1"] <- "Yulin" 
 r0_vals$Region_EN[r0_vals$Region_EN == "Yulin.2"] <- "Yulin.1" 
@@ -22,6 +24,7 @@ r0_vals$Region_EN[r0_vals$Region_EN == "Fuzhou.1"] <- "Fuzhou"
 r0_vals$Region_EN[r0_vals$Region_EN == "Fuzhou.2"] <- "Fuzhou.1" 
 
 
+# ---------- load results from excel file(created manually) ----------
 incidence_df <- cbind(prefectures[r0_vals$Region_EN,1],r0_vals$`Region based R0 (A)`)
 incidence_df <- as.data.frame(incidence_df)
 colnames(incidence_df) <- c("ADM2_ZH","R0")
@@ -32,28 +35,36 @@ incidence_df[255,"ADM2_ZH"] <- "株州市"
 incidence_df[267,"ADM2_ZH"] <- "济源市〔1〕"
 incidence_df$ADM2_ZH <- factor(incidence_df$ADM2_ZH)
 
-
+# ---------- load map data ---------------
 china_sf <- fortify(read_sf("chn_admbnda_adm2_ocha/chn_admbnda_adm2_ocha.shp"))
 
+# ---- color for continuous gradient scale ---------------
 myPalette <- colorRampPalette((brewer.pal(9, "Oranges")))
 sc <- scale_fill_gradientn(colours = myPalette(100),limits = c(0,3))
 
+# ---- map plotter  ---------------------
 plotm <- function(incidence_df,china_sf){
   # print(incidence_df)
   china_df <- merge(china_sf,incidence_df,by="ADM2_ZH",all.x=T)
+  
+  # ---- center points for prefectures-------------
   zzz <- lapply(china_df$geometry,st_coordinates)
   zzz  <- lapply(zzz, apply,2,median)
   zzz <- do.call("rbind",zzz)
+  # -----------------------------------
+  
+  
   china_df <- cbind(china_df,X= zzz[,"X"],Y = zzz[,"Y"])
   # china_df$R0 <- as.numeric(levels(china_df$R0))[china_df$R0]
   # print(china_df$R0)
   china_df$R0 <- sapply(china_df$R0,round,3)
   china_df$R0 <- replace_na(china_df$R0,0)
-  china_df$R0 <- as.factor(china_df$R0)
+  china_df$R0 <- as.factor(china_df$R0) #comment this line for continous figure 
   # print(colnames(china_df[1,]))
   # jpeg("1.jpeg")
   g <- ggplot(data = china_df,aes(fill = R0))+labs(fill = expression(R[0])) +
     geom_sf(lwd=.2)+#coord_sf(expand = F) +
+    #uncomment this line to see prefecture names
     # geom_text(data = china_df,aes(X,Y,label=ADM2_EN),size=1)+
     scale_x_continuous(breaks = c(80,100,120))+
     scale_y_continuous(breaks = c(20,30,40,50))+
@@ -63,7 +74,7 @@ plotm <- function(incidence_df,china_sf){
     theme(legend.position = "bottom",legend.text = element_text(size = 16),
           legend.title = element_text(face = "bold",size = 18),
           legend.key.size = unit(18,"point"))+
-    # sc
+    # sc #uncomment for continous
     scale_fill_manual(values = c("#ffffff","#00ba38", "#b4f27e", "#f8766d"))
   # dev.off()
   # ggsave("temp.jpeg",device = "jpeg")
@@ -77,9 +88,6 @@ gb <- plotm(incidence_df,china_sf)
 incidence_df$R0 <- r0_vals$`Region based R0( C )`
 gc <- plotm(incidence_df,china_sf)
 incidence_df$R0 <- r0_vals$`Region based R0 (D)`
-
-# z <- prefectures["Linxia Hui Autonomous",] #  4 11 20 68 92
-# incidence_df[incidence_df$ADM2_ZH == z,"R0"] <- 0
 
 gd <- plotm(incidence_df,china_sf)
 incidence_df$R0 <- r0_vals$`Region based R0 (E)`

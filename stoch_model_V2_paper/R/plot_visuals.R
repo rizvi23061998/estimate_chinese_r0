@@ -60,6 +60,7 @@ for(i in sq){
   colors = rainbow(length(unique(groups)))
   names(colors) = unique(groups)
   
+  # ---------deprecated tsne ------------------
   # tsne_file = paste("outputs/tsne/c",i,".rds",sep = "")
   # tsne <-readRDS(tsne_file)
   # 
@@ -110,6 +111,7 @@ tiff("pca_new_var_2.tiff",height = 3000,width = 3000,res=300,units = "px"  )
 print(g)
 dev.off()
 
+# ------- case model plot ----------------
 
 # group_names <- c("group1_all","group2_all","group3_all",
 #                  "group1_without_mf","group2_without_mf","group3_without_mf",

@@ -2,7 +2,8 @@
 # Load datasets, functions and parameters ----------------------------------------------
 
 # - - -
-# Load datasets
+# ---------------- deprecated not used ---------------
+# Load datasets 
 travel_data_mobs <- read_csv(paste0(dropbox_path,"data/connectivity_data_mobs.csv"))
 #travel_data_mobs <- read_csv(paste0(dropbox_path,"data/connectivity_data_worldpop.csv"))
 international_conf_data_in <- read_csv(paste0(dropbox_path,"data/international_case_data.csv"))
@@ -16,6 +17,8 @@ data_hubei_Feb <- read_csv(paste0(dropbox_path,"data/hubei_confirmed_cases.csv")
 
 case_data_in <- international_conf_data_in
 travel_data <- travel_data_mobs
+
+# -------------------------------------------------------------------------
 
 t_step <- 0.25
 

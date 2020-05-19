@@ -1,6 +1,6 @@
-# nCoV stochastic model
-# Main script
-# Author: AJ Kucharski (2020)
+# COVID-19 stochastic model
+# Driver
+# Author: Irtesam Mahmud Khan (2020)
 
 # Set up libraries and paths ----------------------------------------------
 
@@ -13,7 +13,7 @@ library(tidyverse)
 library(rootSolve)
 library(mgcv)
 
-registerDoMC(4)  #change the 2 to your number of CPU cores
+registerDoMC(4)  #change the 4 to your number of CPU cores
 
 rm(list=ls(all=TRUE))
 
@@ -33,6 +33,7 @@ if(Sys.info()["user"]=="khan" | Sys.info()["user"]=="Khan") {
 }
 
 source('R/province_clustering.R')
+
 group_names <- c("group1_all","group2_all","group3_all",
                  "group1_incidence","group2_incidence","group3_incidence",
                  "group1_without_mf","group2_without_mf","group3_without_mf",
@@ -40,6 +41,8 @@ group_names <- c("group1_all","group2_all","group3_all",
                  "group1_temp","group2_temp","group3_temp",
                  "group1_only_age","group2_only_age","group3_only_age")
 
+
+#-------------run for each groups------------
 
 for(group_name in group_names){
   print(group_name)

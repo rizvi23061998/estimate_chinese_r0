@@ -1,26 +1,30 @@
 # 2020-ncov
 
-Analysis of the 2019-nCoV outbreak during 2019/20. _Note: this is working repository, so code and data are likely to change over time_
+Analysis of the COVID-19 outbreak during 2019/20. _Note: this is working repository, so code and data are likely to change over time_
 
-### Guide to files for `stoch_model`
+This code was adopted from https://github.com/adamkucharski/2020-ncov/
 
-This is a stochastic SEIR model implemented using Euler-Maruyama, with likelihood estimated using SMC by jointly fitting to cases in Wuhan and exported cases over time in countries with high connectivity to Wuhan.
+All the relevant codes are in the `stoch_model_V2` directory 
+### Guide to files for `stoch_model_V2`
 
-Data loading and model run script is in `scripts/main_model.r`. Calls the following R files:
+This is a stochastic SIR model implemented using Euler-Maruyama, with likelihood estimated using SMC by jointly fitting to cases in different  and exported cases over time in countries with high connectivity to Wuhan.
 
-> `R/load_timeseries.r` - Load and format timeseries
+Analysis for all groups is done in `R/driver.r`. Other R files:
+
+> `scripts/main_model.R` - Load data and run analysis for a single group
+
+> `R/load_timeseries.r` - Load and format timeseries data
 
 > `R/model_functions.r` - Load process model and SMC
 
-> `R/plotting_functions.r` - Plotting functions
+> `R/plotting_functions.r` - Plotting functions and saving R_0 values
 
-> `outputs_main.R` - Run main model outputs
+> `R/outputs_main.R` - Run main model outputs
 
-The code and data used for V1 of [our pre-print on early transmission dynamics](https://www.medrxiv.org/content/10.1101/2020.01.31.20019901v1) can be found in `stoch_model_V1_paper`, with same paths as above.
+> `R/province_clustering.R` - Clustering prefectueres with deferent features
 
-The code and data used for our final Lancet Infectious Diseases paper can be found in `stoch_model_V2_paper`, with same paths as above.
+> `R/plot_visuals.R` - Plot visualization with PCA
 
+> `R/case_rmse.R` - calculate case RMSE
 
-#### Reference
-
-[Kucharski AJ, Russell TW, Diamond C et al. Early dynamics of transmission and control of 2019-nCoV: a mathematical modelling study. Lancet Infectious Diseases, 2020](https://www.medrxiv.org/content/10.1101/2020.01.31.20019901v1)
+> `plot_map.R` - plot maps

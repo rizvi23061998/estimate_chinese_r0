@@ -5,21 +5,21 @@ process_model <- function(t_start,t_end,dt,theta,simTab,simzetaA,travelF){
   # simTab <- storeL[,tt-1,]; t_start = 1; t_end = 2; dt = 0.1; simzetaA <- simzeta[1,]; travelF=theta[["travel_frac"]]
   # print(simzetaA)
   susceptible_t <- simTab[,"sus"] # input function
-  exposed_t1 <- simTab[,"exp1"] # input function
-  exposed_t2 <- simTab[,"exp2"] # input function
-  tr_exposed_t1 <- simTab[,"tr_exp1"] # input function
-  tr_exposed_t2 <- simTab[,"tr_exp2"] # input function
+  exposed_t1 <- simTab[,"exp1"] # input function #deprecated not used
+  exposed_t2 <- simTab[,"exp2"] # input function #deprecated not used
+  tr_exposed_t1 <- simTab[,"tr_exp1"] # input function #deprecated not used
+  tr_exposed_t2 <- simTab[,"tr_exp2"] # input function #deprecated not used
   
-  infectious_t1 <- simTab[,"inf1"] # input function
+  infectious_t1 <- simTab[,"inf1"] # input function 
   infectious_t2 <- simTab[,"inf2"] # input function
   
-  tr_waiting_t <- simTab[,"tr_waiting"] # input function
-  cases_t <- simTab[,"cases"] # input function
-  reports_t <- simTab[,"reports"] # input function
+  tr_waiting_t <- simTab[,"tr_waiting"] # input function #deprecated not used
+  cases_t <- simTab[,"cases"] # input function #deprecated not used
+  reports_t <- simTab[,"reports"] # input function #deprecated not used
   
-  removed_t <- simTab[,"rem"] #input function
+  removed_t <- simTab[,"rem"] #input function # newly added
   
-  waiting_local_t <- simTab[,"waiting_local"] # input function
+  waiting_local_t <- simTab[,"waiting_local"] # input function #deprecated not used
   cases_local_t <- simTab[,"cases_local"] # input function
   reports_local_t <- simTab[,"reports_local"] # input function
   
@@ -39,20 +39,20 @@ process_model <- function(t_start,t_end,dt,theta,simTab,simzetaA,travelF){
     S_to_E1 <- susceptible_t*(infectious_t1+infectious_t2)*inf_rate # stochastic transmission
     
     # Delay until symptoms
-    E1_to_E2 <- exposed_t1*inc_rate # as two compartments
-    E2_to_I1 <- exposed_t2*inc_rate
+    E1_to_E2 <- exposed_t1*inc_rate # as two compartments #deprecated not used
+    E2_to_I1 <- exposed_t2*inc_rate #deprecated not used
     
-    E1_to_E2_tr <- tr_exposed_t1*inc_rate # as two compartments
-    E2_to_I1_tr <- tr_exposed_t2*inc_rate
+    E1_to_E2_tr <- tr_exposed_t1*inc_rate # as two compartments #deprecated not used
+    E2_to_I1_tr <- tr_exposed_t2*inc_rate #deprecated not used
     
     # Delay until recovery
     I1_to_I2 <- infectious_t1*rec_rate
     I2_to_R <- infectious_t2*rec_rate
     
     # Delay until reported
-    W_to_Rep <- tr_waiting_t*rep_rate
+    W_to_Rep <- tr_waiting_t*rep_rate #deprecated not used
     
-    W_to_Rep_local <- waiting_local_t*rep_rate_local
+    W_to_Rep_local <- waiting_local_t*rep_rate_local #deprecated not used
     
     # Process model for SEIR
     susceptible_t <- susceptible_t - S_to_E1
@@ -71,8 +71,9 @@ process_model <- function(t_start,t_end,dt,theta,simTab,simzetaA,travelF){
     cases_local_t <- cases_local_t + S_to_E1#E2_to_I1*prob_rep_local
     reports_local_t <-cases_local_t#reports_local_t + W_to_Rep_local
     
+    #deprecated not used
     tr_waiting_t <- tr_waiting_t + E2_to_I1_tr*prob_rep - W_to_Rep
-    cases_t <- cases_t + E2_to_I1_tr*prob_rep
+    cases_t <- cases_t + E2_to_I1_tr*prob_rep 
     reports_t <- reports_t + W_to_Rep
     
   }
@@ -147,8 +148,9 @@ smc_model <- function(theta,nn,dt=1){
     # Add random walk on transmission ?
     simzeta[tt,] <- simzeta[tt-1,]*exp(simzeta[tt,])
     
-    # travel restrictions in place?
-    if(tt<wuhan_travel_time){travelF <- theta[["travel_frac"]]}else{travelF <- 0}
+    # travel restrictions in place? #deprecated not used
+    # if(tt<wuhan_travel_time){travelF <- theta[["travel_frac"]]}else{travelF <- 0}
+    travelF <- 0
     
     # run process model
     storeL[,tt,] <- process_model(tt-1,tt,dt,theta,storeL[,tt-1,],simzeta[tt,],travelF)
@@ -364,62 +366,6 @@ AssignWeights <- function(data_list,storeL,nn,theta,tt){
   }
   
   
-  # - - -
-  # International confirmed cases (by country)------------------------
-  
-  # Do location by location
-  # x_scaled <- theta[["confirmed_prop"]]*rep_val
-  # x_expected <- sapply(x_scaled,function(x){x*as.numeric(top_risk$risk)}); #x_expected <- t(x_expected) # expected exported cases in each location
-  # 
-  # # # Note here rows are particles, cols are locations.
-  # x_lam <- x_expected; dim(x_lam) <- NULL # flatten data on expectation
-  # y_lam <- rep(rep_data_tt,nn); #dim(y_lam) <- NULL
-  # 
-  # # Calculate likelihood
-  # loglik <- dpois(y_lam,lambda=x_lam,log=T)
-  # loglikSum_int_conf <- rowSums(matrix(loglik,nrow=nn,byrow=T))
-
-  
-  # - - -
-  # International onsets (total)------------------------
-  # if(!is.na(case_data_tt)){
-  #   x_scaled <- theta[["confirmed_prop"]]*c_val*theta[["onset_prop_int"]]
-  #   x_expected <- sapply(x_scaled,function(x){x*as.numeric(top_risk$risk)}) %>% t() # expected exported cases in each location
-  #   x_lam <- rowSums(x_expected)
-  #   y_lam <- case_data_tt
-  #   
-  #   # Calculate likelihood
-  #   loglik <- dpois(y_lam,lambda=x_lam,log=T)
-  #   loglikSum_inf_onset <- rowSums(matrix(loglik,nrow=nn,byrow=T))
-  # }else{
-  #   loglikSum_inf_onset <- 0
-  # }
-  # 
-  # # - - -
-  # # Additional probablity infections from evacuation flights
-  # 
-  # if(!is.na(flight_info_tt)){
-  #   
-  #   prob_inf <- pmax(0,inf_prev/theta[["pop_travel"]]) # ensure >=0
-  #   
-  #   #print(c(flight_prop_tt[1],flight_prop_tt[2],prob_inf[1])) DEBUG
-  #   
-  #   loglikSum_flight_info <- dbinom(flight_prop_tt[1],flight_prop_tt[2],prob=prob_inf,log=T)
-  #   
-  #   loglikSum_flight_info[is.na(loglikSum_flight_info)] <- -Inf # Set NA = -Inf
-  # }else{
-  #   loglikSum_flight_info <- 0
-  # }
-  
-  # print(c(loglikSum_local_onset[1],
-  # loglikSum_inf_onset[1],
-  # loglikSum_local_conf[1],
-  # loglikSum_flight_info[1]))
-  
-  # - - -
-  # Tally up likelihoods
-  # loglikSum_local_conf   
-  # loglikSum <- loglikSum_local_onset + loglikSum_inf_onset + loglikSum_flight_info #+ loglikSum_local_conf #+ loglikSum_int_conf #+ loglikSum_local_conf
   #calculating lik------------------
   
   loglikSum <- loglikSum_local_conf + loglikSum_local_rem

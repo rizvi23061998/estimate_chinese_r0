@@ -3,15 +3,17 @@ library(plyr)
 set.seed(123)
 library(Rtsne)
 
+# --------- load features --------------------
 china_incidence <- read_excel("data/chinesedata/Copy of China_C19.dbf.xlsx")
 china_incidence <- china_incidence[!is.na(china_incidence$Region_EN),]
 china_incidence$Region_EN <- make.unique(china_incidence$Region_EN)
 
+# ---------- load population ------------------
 china_population <- read_excel("data/chinesedata/population data-zwy.xlsx")
 china_population <- china_population[!is.na(china_population$Region_EN),]
 china_population$Region_EN <- make.unique(china_population$Region_EN)
 
-
+# ------------  merge -----------------
 data <- join(china_incidence,china_population,by = "Region_EN")
 # data <- data[data$Region_EN != "Wuhan",]
 
@@ -21,11 +23,7 @@ data <- join(china_incidence,china_population,by = "Region_EN")
 # write_rds(name_data,"outputs/prefecture_names.rds")
 data$地区名称 <- NULL
 
-
-
-# data = data[which(data$Incidence != 0),]
-
-
+# ------------------ delete missing info prefectures-----------
 data <- drop_na(data)
  
 new_data = data[,c("Incidence","Recovery_R","Mortality")]
@@ -49,7 +47,8 @@ new_data = data[,c("Incidence","Recovery_R","Mortality")]
 # write_rds(group1,"outputs/rds/group1_incidence.rds")
 # write_rds(group2,"outputs/rds/group2_incidence.rds")
 # write_rds(group3,"outputs/rds/group3_incidence.rds")
-# 
+
+# -------- load temperature  features ------------ 
 min_temp <- read_excel("data/chinesedata/Min_Temperature.xlsx")
 min_temp <- as.data.frame(min_temp)
 min_temp$Region_CN = NULL
@@ -93,7 +92,7 @@ max_col <- apply(max_temp, 1, FUN=max)
 max_temp$max_max_temp <- max_col
 max_temp <- max_temp[,c("min_max_temp","mean_max_temp","max_max_temp")]
 
-
+# ----------- merge all ------------
 min_temp$Region_EN <- rownames(min_temp)
 mean_temp$Region_EN <- rownames(mean_temp)
 max_temp$Region_EN <- rownames(max_temp)
@@ -101,6 +100,8 @@ data_all <- join(data,min_temp,by="Region_EN")
 data_all <- join(data_all,mean_temp,by="Region_EN")
 data_all <- join(data_all,max_temp,by="Region_EN")
 data_all <- drop_na(data_all)
+
+# -------------- create new columns -----------------
 non_required_cols <- c("Pop_2018", "Total_Recover" ,"Tota_death","Total_confirm_cases")
 data_all <- data_all[,!(colnames(data_all) %in% non_required_cols)]
 # data_all <- data_all %>% mutate(mf_ratio = (`2018male` / `2018female`))
@@ -134,6 +135,7 @@ group3 <- data_all[which(data_all$group == 3),"Region_EN"]
 
 print(colnames(data_all))
 
+# -- ------------- save group data ---------------------
 #
 # # print(group1)
 # #
@@ -176,6 +178,8 @@ print(colnames(data_all))
 # library(Rtsne)
 # 
 # library(factoextra)
+
+# --------------------- save data for pca ------------
 new_data <- data_all#[,c("Region_EN","Incidence","Mortality","Recovery_R","group")]#data_all
 rownames(new_data) <- new_data$Region_EN
 new_data$Region_EN <- NULL
