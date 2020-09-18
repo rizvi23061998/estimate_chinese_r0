@@ -6,8 +6,8 @@ pca_list = vector('list',4)
 tsne_list  = vector('list',)
 pca_var_list <- vector('list',12)
 cluster_name <- c('A','R','B','C','D','P')
-# sq <- c(1,3,4,5)
-sq <- c(2,6)
+sq <- c(1,3,4,5)
+# sq <- c(2,6)
 for(i in sq){
   data_file = paste("outputs/pca/d",i,".rds",sep = "")
   new_data <- readRDS(data_file)
@@ -33,8 +33,9 @@ for(i in sq){
                       geom = "point"
     )
     
-    p <- p + ggtitle(paste("PCA Individuals(Cluster ",cluster_name[i],")",sep = ""))
-    #+ labs(x = "Dimension1",y="Dimension2")
+    p <- p + ggtitle(paste("PCA Individuals(Clustering Scheme ",cluster_name[i],")",sep = ""))
+    
+    #+ labs(x  = "Dimension1",y="Dimension2")
     # print(tsne_data)
     # pv <- fviz_eig(res)
     # tiff(paste("pca_",cluster_name[i],".tiff",sep = ""),res=300,height = 3000,
@@ -52,7 +53,7 @@ for(i in sq){
                        col.var = "contrib", # Color by contributions to the PC
                        gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                        repel = TRUE     # Avoid text overlapping
-    )+ ggtitle(paste("PCA Variable(Cluster ",cluster_name[i],")",sep = ""))+
+    )+ ggtitle(paste("PCA Variable(Clustering Scheme ",cluster_name[i],")",sep = ""))+
       labs(color="Contribution")
     (pv)
   })
@@ -84,15 +85,15 @@ for(i in sq){
 # print(g)
 # dev.off()
 
-# g <- ggarrange(plotlist =pca_list[sq],ncol = 2,nrow = 2,common.legend = T,legend = "top")
-# tiff("pca_new_ind_4.tiff",height = 3000,width = 3000,res=300,units = "px"  )
-# print(g)
-# dev.off()
-
-g <- ggarrange(plotlist =pca_list[sq],ncol = 1,nrow = 2,common.legend = T,legend = "top")
-tiff("pca_new_ind_2.tiff",height = 3000,width = 3000,res=300,units = "px"  )
+g <- ggarrange(plotlist =pca_list[sq],ncol = 2,nrow = 2,common.legend = T,legend = "top")
+tiff("pca_new_ind_4.tiff",height = 3000,width = 3000,res=300,units = "px"  )
 print(g)
 dev.off()
+
+# g <- ggarrange(plotlist =pca_list[sq],ncol = 1,nrow = 2,common.legend = T,legend = "top")
+# tiff("pca_new_ind_2.tiff",height = 3000,width = 3000,res=300,units = "px"  )
+# print(g)
+# dev.off()
 
 
 # g <- ggarrange(ggarrange(plotlist =pca_var_list[c(1,2,3,4)],ncol = 2,nrow = 2),pca_var_list[[5]],nrow = 2,heights = c(2,1))
@@ -101,15 +102,15 @@ dev.off()
 # dev.off()
 
 
-# g <- ggarrange(plotlist =pca_var_list[sq],ncol = 2,nrow = 2)
-# tiff("pca_new_var_4.tiff",height = 3000,width = 3000,res=300,units = "px"  )
-# print(g)
-# dev.off()
-
-g <- ggarrange(plotlist =pca_var_list[sq],ncol = 1,nrow = 2)
-tiff("pca_new_var_2.tiff",height = 3000,width = 3000,res=300,units = "px"  )
+g <- ggarrange(plotlist =pca_var_list[sq],ncol = 2,nrow = 2)
+tiff("pca_new_var_4.tiff",height = 3000,width = 3000,res=300,units = "px"  )
 print(g)
 dev.off()
+
+# g <- ggarrange(plotlist =pca_var_list[sq],ncol = 1,nrow = 2)
+# tiff("pca_new_var_2.tiff",height = 3000,width = 3000,res=300,units = "px"  )
+# print(g)
+# dev.off()
 
 # ------- case model plot ----------------
 

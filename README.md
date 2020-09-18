@@ -28,3 +28,17 @@ Analysis for all groups is done in `R/driver.r`. Other R files:
 > `R/case_rmse.R` - calculate case RMSE
 
 > `plot_map.R` - plot maps
+
+### Procedure for running the code
+There are some Linux specific package used in this study. ***So this code must be run in a Linux environment.*** This study was originally performed in Ubuntu 18.04.So it is highly recommended to use this as environment.
+
+> To run the simulation as in the current state just run `R/driver.R`
+
+> To perform clustering run `R/province_clustering.R`.You have to change the feature set manually for each type of clustering scheme
+
+> For plotting maps run `plot_map.R`
+
+> For plotting PCA visualization run `R/plot_visuals.R`
+
+> Run `R/case_rmse.R` for calculating RMSE
+
